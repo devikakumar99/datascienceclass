@@ -169,8 +169,6 @@ Now, try to create a map:
 
 
 
-
-
 Use the WDI package to get World Bank Data on GDP in the US and deflate it (I chose to use 2010 becuase it seems like it would show the most difference in inflation over time): 
 
 ```{r}
@@ -183,8 +181,8 @@ gdp_current = WDI(country = "all",
 #use the World Bank's GDP deflator
 # https://data.worldbank.org/indicator/NY.GDP.DEFL.ZS
 deflator_data = WDI(country = "all", indicator = c("NY.GDP.DEFL.ZS"),
-                    start = 2001, # start of data 
-                    end = 2017, # end of of data 
+                    start = 2001, # start of foreign aid data 
+                    end = 2017, # end of of foreign aid data 
                     extra = FALSE, cache = NULL)
 
 #rename the deflator variable
@@ -205,9 +203,10 @@ usd_deflator$country = NULL
 deflated_data = left_join(gdp_current,
                           usd_deflator, 
                           by = c("year"))
+
+
 #NEXT, actually DEFLATE the data
-deflated_data$deflated_amount = deflated_data$gdp_current/ 
-  (deflated_data$deflator/100)
+deflated_data$deflated_amount = deflated_data$NY.GDP.MKTP.CD/(deflated_data$deflator/100)
 
 head(deflated_data)
 ```

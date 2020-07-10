@@ -84,11 +84,52 @@ dim(inequality_long)
 dim(inequality_wide)
 
 #create inequality_collapsed which is collapsed by the mean
-
 inequality_collapsed <-
   inequality_long %>%
   group_by(GEOID, state, year, gini) %>% # tell R the unique IDs 
-  summarize(, mean)) # summarize numeric vars by mean
+  summarize(across(where(is.numeric), mean)) # summarize numeric vars by mean
+
+
+# #Create a map of the data
+# # install these normally if you don't have them
+# library(rio) 
+# library(tidyverse)
+# library(googlesheets4) 
+# library(labelled) 
+# library(data.table)
+# library(varhandle)
+# library(ggrepel)
+# library(geosphere) 
+# library(rgeos)
+# library(viridis)
+# library(mapview) 
+# library(rnaturalearth)
+# library(rnaturalearthdata)
+# library(devtools)
+# library(remotes)
+# library(raster)
+# library(sp)
+# library(sf)
+# library(Imap)
+# library(rnaturalearthhires)# devtools::install_github("ropensci/rnaturalearthhires") 
+# library(ggsflabel) # devtools::install_github("yutannihilation/ggsflabel")
+# 
+# 
+# #get  data from rnaturalearth package
+# inequality_map <- ne_countries(country = 'united states', scale = "medium",
+#                               returnclass = "sf")
+# 
+# #now create the map
+# inequality_map = ggplot() +
+#   geom_sf(data = united_states) +
+#   geom_sf(data = inequality_collapsed, aes(fill=`Log Value`)) + 
+#   scale_fill_viridis(option = "viridis") +
+#   ggtitle("State Inequality Data, Gini Indexx, Average (2010 and 2015)") + 
+#   theme(plot.title = element_text(hjust = 0.5)) +
+#   theme_void()
+# 
+# print(inequality_map)
+
 
 
 
@@ -103,9 +144,10 @@ gdp_current = WDI(country = "all",
 #use the World Bank's GDP deflator
 # https://data.worldbank.org/indicator/NY.GDP.DEFL.ZS
 deflator_data = WDI(country = "all", indicator = c("NY.GDP.DEFL.ZS"),
-                    start = 2010, # start of foreign aid data 
-                    end = 2010, # end of of foreign aid data 
+                    start = 2001, # start of foreign aid data 
+                    end = 2017, # end of of foreign aid data 
                     extra = FALSE, cache = NULL)
+
 #rename the deflator variable
 library(data.table)
 setnames(deflator_data, "NY.GDP.DEFL.ZS", "deflator")
@@ -114,19 +156,20 @@ setnames(deflator_data, "NY.GDP.DEFL.ZS", "deflator")
 #remember that 100 = the base year, which varies per country
 usd_deflator = subset(deflator_data, country == "United States")
 
-#clean up the environment
-rm(deflator_data)
-#drop unnecessary variables
-usd_deflator$iso2c = NULL
-usd_deflator$country = NULL
+# #clean up the environment
+# rm(deflator_data)
+# #drop unnecessary variables
+# usd_deflator$iso2c = NULL
+# usd_deflator$country = NULL
 
 #merge the data frames
 deflated_data = left_join(gdp_current,
                           usd_deflator, 
                           by = c("year"))
+
+
 #NEXT, actually DEFLATE the data
-deflated_data$deflated_amount = deflated_data$gdp_current/ 
-  (deflated_data$deflator/100)
+deflated_data$deflated_amount = deflated_data$NY.GDP.MKTP.CD/(deflated_data$deflator/100)
 
 head(deflated_data)
 
